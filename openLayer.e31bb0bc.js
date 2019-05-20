@@ -52721,49 +52721,30 @@ var _Overlay = _interopRequireDefault(require("ol/Overlay"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// const jsonStyles = {
-//     Polygon: new Style({
-//         stroke: new Stroke({
-//             color: "green",
-//             lineDash: [4],
-//             width: 15
-//         }),
-//         fill: new Fill({
-//             color: "rgba(0, 255, 0, 0.1)"
-//         })
-//     })
-// };
-//
-// const jsonStyleFunction = feature =>
-//     jsonStyles[feature.getGeometry().getType()];
-var vectorL = new _Vector.default({
-  source: new _Vector2.default({
-    url: 'https://mehradae.github.io/test/us_states.geojson',
-    format: new _GeoJSON.default(),
-    wrapX: false
-  }),
-  style: new _style.Style({
-    fill: new _style.Fill({
-      color: "rgba(0, 255, 0, 0.1)"
-    }),
-    stroke: new _style.Stroke({
-      color: '#d4d2d3',
-      width: 1
-    })
-  })
-});
+var statesbtn, partitionbtn;
+statesbtn = document.getElementById('btn1').addEventListener("click", states, false);
+partitionbtn = document.getElementById('btn2').addEventListener("click", partition, false);
 var TileL = new _Tile.default({
   source: new _OSM.default()
-}); //var interactions= defaultInteractions().extend([MouseHover,ItemSelect]);
-
+});
 var map = new _Map.default({
-  layers: [TileL, vectorL],
+  layers: [TileL],
   target: "map",
   view: new _View.default({
     center: [0, 0],
     zoom: 1
   })
 });
+var test = map.getLayers();
+TileL.set('name', 'TileL');
+map.getLayers().forEach(function (layer) {
+  console.log(layer);
+  console.log(layer.get('name'));
+}); // console.log(test);
+// console.log(test.layer);
+// console.log(map.Layers);
+// console.log(map);
+
 var MouseHover = new _Select.default({
   condition: _condition.pointerMove,
   wrapX: false
@@ -52779,12 +52760,7 @@ map.addInteraction(ItemSelect);
 
 var container = document.getElementById('popup');
 var content_element = document.getElementById('popup-content');
-var closer = document.getElementById('popup-closer'); // closer.onclick = function() {
-//     overlay.setPosition(undefined);
-//     closer.blur();
-//     return false;
-// };
-
+var closer = document.getElementById('popup-closer');
 /**
  * Create an overlay to anchor the popup to the map.
  */
@@ -52807,89 +52783,94 @@ closer.onclick = function () {
   closer.blur();
   return false;
 };
-/**
- * Add a click handler to the map to render the popup.
- */
 
+function states() {
+  var StateVector = new _Vector.default({
+    source: new _Vector2.default({
+      url: 'https://mehradae.github.io/test/us_states.geojson',
+      format: new _GeoJSON.default(),
+      wrapX: false
+    }),
+    style: new _style.Style({
+      fill: new _style.Fill({
+        color: "rgba(0, 255, 0, 0.1)"
+      }),
+      stroke: new _style.Stroke({
+        color: '#d4d2d3',
+        width: 1
+      })
+    })
+  }); //set name to define the layer
 
-map.on('click', function (evt) {
-  var coordinate = evt.coordinate;
-  var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
-    return feature;
+  StateVector.set('state', 'StateVector'); //remove the other layer
+
+  map.getLayers().forEach(function (layer) {
+    if (layer.get('partition') != undefined && layer.get('partition') === 'partitionVector') {
+      map.removeLayer(layer);
+    }
   });
+  map.addLayer(StateVector);
+  /**
+   * Add a click handler to the map to render the popup.
+   */
 
-  if (feature) {
-    var content = "<b>State Name: " + "<small style='color: indigo'>" + feature.get('NAME') + "</small></b>";
-    content += '<h5>' + 'USPS Code: ' + feature.get('STUSPS') + '</h5>';
-    content_element.innerHTML = content;
-    overlay.setPosition(coordinate);
-    console.info(feature.getProperties());
-  }
-}); // map.on('singleclick', function(evt) {
-//     //var hdms = toStringHDMS(toLonLat(coordinate));
-//
-//     content_element.innerHTML = '<p>You clicked here:</p>';
-//     overlay.setPosition(coordinate);
-// });
-// map.on('pointermove', function(e) {
-//     if (e.dragging) return;
-//
-//     var pixel = map.getEventPixel(e.originalEvent);
-//     var hit = map.hasFeatureAtPixel(pixel);
-//
-//     map.getTarget().style.cursor = hit ? 'pointer' : '';
-// });
-//
-// map.once("postrender", () => {
-//     get(
-//         "https://mehradae.github.io/test/us_states.geojson"
-//     ).then(({ data } = {}) => {
-//         console.log("Data -> ", data);
-//         const jsonSource = new VectorSource({
-//             features: new GeoJSON().readFeatures(data, {
-//                 featureProjection: "EPSG:4326"
-//             })
-//         });
-//         console.log("JSON Source ->", jsonSource);
-//
-//         const jsonLayer = new VectorLayer({
-//             source: jsonSource,
-//             style: jsonStyleFunction
-//         });
-//         console.log("JSON Layer -> ", jsonLayer);
-//
-//         map.addLayer(jsonLayer);
-//         console.log("Map Layers -> ");
-//     });
-// });
-// window.onload = () => {
-//     const target = document.getElementById('map')
-//
-//     new Map({
-//         target,
-//         view: new View({
-//             center: [0, 0],
-//             zoom: 2,
-//         }),
-//         layers: [
-//             new TileLayer({
-//                 source: new OSM(),
-//             }),
-//             new VectorLayer({
-//                 source: new VectorSource({
-//                     url: 'https://mehradae.github.io/test/us_states.geojson',
-//                     format: new GeoJSON(),
-//                 }),
-//                 // New Style that fills the countries with the color #D4AF37
-//                 style: new Style({
-//                     fill: new Fill({
-//                         color: '#D4AF37',
-//                     })
-//                 })
-//             })
-//         ]
-//     });
-// }
+  map.on('click', function (evt) {
+    var coordinate = evt.coordinate;
+    var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+      return feature;
+    });
+
+    if (feature) {
+      var content = "<b>State Name: " + "<small style='color: indigo'>" + feature.get('NAME') + "</small></b>";
+      content += '</br><b>' + 'USPS Code: ' + "<small style='color: indigo'>" + feature.get('STUSPS') + '</small></b>';
+      content_element.innerHTML = content;
+      overlay.setPosition(coordinate);
+    }
+  });
+}
+
+function partition() {
+  var partitionVector = new _Vector.default({
+    source: new _Vector2.default({
+      url: 'https://mehradae.github.io/test/partitioning_info.geojson',
+      format: new _GeoJSON.default(),
+      wrapX: false
+    }),
+    style: new _style.Style({
+      fill: new _style.Fill({
+        color: "rgba(0, 255, 0, 0.1)"
+      }),
+      stroke: new _style.Stroke({
+        color: '#d4d2d3',
+        width: 1
+      })
+    })
+  });
+  partitionVector.set('partition', 'partitionVector');
+  map.getLayers().forEach(function (layer) {
+    if (layer.get('state') != undefined && layer.get('state') === 'StateVector') {
+      map.removeLayer(layer);
+    }
+  });
+  map.addLayer(partitionVector);
+  /**
+   * Add a click handler to the map to render the popup.
+   */
+
+  map.on('click', function (evt) {
+    var coordinate = evt.coordinate;
+    var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+      return feature;
+    });
+
+    if (feature) {
+      var content = "<b>record Count: " + "<small style='color: indigo'>" + feature.get('Record Count') + "</small></b>";
+      content += '</br><b>' + 'Data Size: ' + "<small style='color: indigo'>" + feature.get('Data Size') + '</small></b>';
+      content_element.innerHTML = content;
+      overlay.setPosition(coordinate);
+    }
+  });
+}
 },{"ol/View":"node_modules/ol/View.js","ol/Map":"node_modules/ol/Map.js","ol/layer/Tile":"node_modules/ol/layer/Tile.js","ol/source/OSM":"node_modules/ol/source/OSM.js","ol/layer/Vector":"node_modules/ol/layer/Vector.js","ol/source/Vector":"node_modules/ol/source/Vector.js","ol/format/GeoJSON":"node_modules/ol/format/GeoJSON.js","ol/style.js":"node_modules/ol/style.js","axios":"node_modules/axios/index.js","ol/events/condition.js":"node_modules/ol/events/condition.js","ol/interaction/Select.js":"node_modules/ol/interaction/Select.js","ol/functions":"node_modules/ol/functions.js","ol/Overlay":"node_modules/ol/Overlay.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -52918,7 +52899,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "35089" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "41537" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
